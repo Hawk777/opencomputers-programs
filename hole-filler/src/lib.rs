@@ -560,15 +560,7 @@ impl Application {
 		// Do work.
 		self.do_work(&mut nav, layers).await?;
 
-		// Go home, if not already there, and shut down.
-		let mut robot_locked = self.robot.lock(&mut self.invoker, &mut self.buffer);
-		nav.move_to(&mut robot_locked, EAST_X, nav.y, HOME_Z)
-			.await?;
-		nav.move_to(&mut robot_locked, EAST_X, HOME_Y, HOME_Z)
-			.await?;
-		nav.move_to(&mut robot_locked, HOME_X, HOME_Y, HOME_Z)
-			.await?;
-		nav.turn_to(&mut robot_locked, HOME_DIR).await?;
+		// do_work ends at home, so shut down.
 		computer::shutdown();
 	}
 
@@ -681,6 +673,16 @@ impl Application {
 				nav.move_robot(&mut robot_locked, robot::MoveDirection::Up)
 					.await?;
 			}
+
+			// Go home.
+			let mut robot_locked = self.robot.lock(&mut self.invoker, &mut self.buffer);
+			nav.move_to(&mut robot_locked, EAST_X, nav.y, HOME_Z)
+				.await?;
+			nav.move_to(&mut robot_locked, EAST_X, HOME_Y, HOME_Z)
+				.await?;
+			nav.move_to(&mut robot_locked, HOME_X, HOME_Y, HOME_Z)
+				.await?;
+			nav.turn_to(&mut robot_locked, HOME_DIR).await?;
 		}
 		Ok(())
 	}
