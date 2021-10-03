@@ -34,7 +34,7 @@ use core::pin::Pin;
 use core::time::Duration;
 use minicbor::decode::Decoder;
 use oc_wasm_futures::sleep;
-use oc_wasm_opencomputers::common::{Dimension, Point, RelativeSide, Rgb};
+use oc_wasm_opencomputers::common::{Dimension, Point, Rgb};
 use oc_wasm_opencomputers::error::Error;
 use oc_wasm_opencomputers::{gpu, keyboard, redstone, robot, screen};
 use oc_wasm_safe::{component, computer};
@@ -574,11 +574,15 @@ impl Application {
 			// If we are low on energy, recharge.
 			if energy_percent() < 95 {
 				let mut rs_locked = self.redstone.lock(&mut self.invoker, &mut self.buffer);
-				rs_locked.set_side_output(RelativeSide::Front, 15).await?;
+				rs_locked
+					.set_output(&[Some(15), Some(15), Some(15), Some(15), Some(15), Some(15)])
+					.await?;
 				while energy_percent() < 95 {
 					sleep::for_uptime(Duration::from_secs(10)).await;
 				}
-				rs_locked.set_side_output(RelativeSide::Front, 0).await?;
+				rs_locked
+					.set_output(&[Some(0), Some(0), Some(0), Some(0), Some(0), Some(0)])
+					.await?;
 			}
 
 			// Calculate how many layers we can fill on a single trip.
