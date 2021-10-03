@@ -1,0 +1,45 @@
+[package]
+name = "component-list"
+version = "0.1.0"
+authors = ["Christopher Head <chead@chead.ca>"]
+edition = "2018"
+description = "Displays a list of available components"
+repository = "https://gitlab.com/Hawk777/opencomputers-programs"
+license = "GPL-3.0-only"
+keywords = ["minecraft", "oc-wasm", "opencomputers"]
+categories = ["games"]
+resolver = "2"
+
+[dependencies.cassette]
+version = "^0.2"
+
+[dependencies.oc-wasm-futures]
+default-features = false
+version = "^0.2"
+
+[dependencies.oc-wasm-opencomputers]
+default-features = false
+version = "^0.3"
+
+[dependencies.oc-wasm-safe]
+default-features = false
+features = ["panic"]
+version = "^0.1"
+
+[dependencies.once_cell]
+default-features = false
+version = "^1.8"
+
+[dependencies.wee_alloc]
+version = "^0.4"
+
+[lib]
+crate-type = ["cdylib"]
+
+[profile.dev]
+panic = "abort"
+
+[profile.release]
+lto = true
+opt-level = "z"
+panic = "abort"
