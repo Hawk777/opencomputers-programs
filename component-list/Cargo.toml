@@ -2,13 +2,12 @@
 name = "component-list"
 version = "0.1.0"
 authors = ["Christopher Head <chead@chead.ca>"]
-edition = "2018"
+edition = "2021"
 description = "Displays a list of available components"
 repository = "https://gitlab.com/Hawk777/opencomputers-programs"
 license = "GPL-3.0-only"
 keywords = ["minecraft", "oc-wasm", "opencomputers"]
 categories = ["games"]
-resolver = "2"
 
 [dependencies.cassette]
 version = "^0.2"
