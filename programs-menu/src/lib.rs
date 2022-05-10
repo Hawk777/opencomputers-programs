@@ -31,10 +31,8 @@ use core::panic::PanicInfo;
 use core::pin::Pin;
 use minicbor::decode::Decoder;
 use oc_wasm_futures::sleep;
-use oc_wasm_opencomputers::{
-	common::{Dimension, Point, Rgb},
-	filesystem, gpu, keyboard, screen,
-};
+use oc_wasm_opencomputers::common::{Dimension, Lockable, Point, Rgb};
+use oc_wasm_opencomputers::{filesystem, gpu, keyboard, screen};
 use oc_wasm_safe::{component, computer, execute};
 use once_cell::unsync::OnceCell;
 use wee_alloc::WeeAlloc;
@@ -90,7 +88,7 @@ async fn read_line(
 			// Pop and handle signal.
 			buffer.resize(len.get(), 0);
 			let signal = computer::pull_signal(buffer)?.unwrap();
-			let mut decoder = Decoder::new(&signal);
+			let mut decoder = Decoder::new(signal);
 			let signal_name = decoder
 				.str()
 				.map_err(|_| oc_wasm_safe::error::Error::CborDecode)?;
@@ -163,8 +161,8 @@ async fn main_impl() -> Result<Infallible, oc_wasm_opencomputers::error::Error> 
 	let mut buffer = vec![];
 
 	// Initialize GPU and screen.
-	let gpu = gpu::Gpu::new(*lister.start(Some(&gpu::TYPE)).next().unwrap().address());
-	let screen = screen::Screen::new(*lister.start(Some(&screen::TYPE)).next().unwrap().address());
+	let gpu = gpu::Gpu::new(*lister.start(Some(gpu::TYPE)).next().unwrap().address());
+	let screen = screen::Screen::new(*lister.start(Some(screen::TYPE)).next().unwrap().address());
 	let mut gpu_locked = gpu.lock(&mut invoker, &mut buffer);
 	gpu_locked.bind(*screen.address(), true).await?;
 	let screen_size = gpu_locked.max_resolution().await?;
@@ -177,7 +175,7 @@ async fn main_impl() -> Result<Infallible, oc_wasm_opencomputers::error::Error> 
 	// Find filesystem components.
 	let filesystems = {
 		let mut addresses = vec![];
-		let mut list = lister.start(Some(&filesystem::TYPE));
+		let mut list = lister.start(Some(filesystem::TYPE));
 		while let Some(item) = list.next() {
 			addresses.push(*item.address());
 		}
@@ -277,7 +275,7 @@ async fn main_impl() -> Result<Infallible, oc_wasm_opencomputers::error::Error> 
 		.lock(&mut invoker, &mut buffer)
 		.open_read(file)
 		.await?;
-	while let Some(bytes_read) = handle.lock(&mut invoker, &mut buffer).read(4096).await? {
+	while let Some(bytes_read) = (&handle).lock(&mut invoker, &mut buffer).read(4096).await? {
 		execute::add(bytes_read)?;
 	}
 	drop(handle);
