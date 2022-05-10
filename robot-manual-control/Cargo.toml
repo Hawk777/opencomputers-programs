@@ -14,20 +14,20 @@ resolver = "2"
 version = "^0.2"
 
 [dependencies.minicbor]
-version = "^0.9"
+version = "^0.15"
 
 [dependencies.oc-wasm-futures]
 default-features = false
-version = "^0.1"
+version = "^0.3"
 
 [dependencies.oc-wasm-opencomputers]
 default-features = false
-version = "^0.2"
+version = "^0.4"
 
 [dependencies.oc-wasm-safe]
 default-features = false
 features = ["panic"]
-version = "^0.1"
+version = "^0.2"
 
 [dependencies.once_cell]
 default-features = false
@@ -38,12 +38,6 @@ version = "^0.4"
 
 [lib]
 crate-type = ["cdylib"]
-
-[patch.crates-io.oc-wasm-futures]
-path = "../../../oc-wasm/rust/oc-wasm-futures"
-
-[patch.crates-io.oc-wasm-opencomputers]
-path = "../../../oc-wasm/rust/oc-wasm-opencomputers"
 
 [profile.dev]
 panic = "abort"

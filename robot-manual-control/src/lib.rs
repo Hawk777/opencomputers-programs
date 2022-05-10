@@ -32,7 +32,7 @@ use core::panic::PanicInfo;
 use core::pin::Pin;
 use minicbor::decode::Decoder;
 use oc_wasm_futures::sleep;
-use oc_wasm_opencomputers::common::{Point, Rgb};
+use oc_wasm_opencomputers::common::{Lockable, Point, Rgb};
 use oc_wasm_opencomputers::{gpu, keyboard, robot, screen};
 use oc_wasm_safe::{component, computer};
 use once_cell::unsync::OnceCell;
@@ -64,10 +64,10 @@ impl Application {
 		let mut lister = component::Lister::take().unwrap();
 		let invoker = component::Invoker::take().unwrap();
 		let buffer = vec![];
-		let gpu = gpu::Gpu::new(*lister.start(Some(&gpu::TYPE)).next().unwrap().address());
+		let gpu = gpu::Gpu::new(*lister.start(Some(gpu::TYPE)).next().unwrap().address());
 		let screen =
-			screen::Screen::new(*lister.start(Some(&screen::TYPE)).next().unwrap().address());
-		let robot = robot::Robot::new(*lister.start(Some(&robot::TYPE)).next().unwrap().address());
+			screen::Screen::new(*lister.start(Some(screen::TYPE)).next().unwrap().address());
+		let robot = robot::Robot::new(*lister.start(Some(robot::TYPE)).next().unwrap().address());
 		Ok(Application {
 			invoker,
 			buffer,
@@ -144,7 +144,7 @@ impl Application {
 					// Pop and handle signal.
 					self.buffer.resize(len.get(), 0);
 					let signal = computer::pull_signal(&mut self.buffer)?.unwrap();
-					let mut decoder = Decoder::new(&signal);
+					let mut decoder = Decoder::new(signal);
 					let signal_name = decoder
 						.str()
 						.map_err(|_| oc_wasm_safe::error::Error::CborDecode)?;
