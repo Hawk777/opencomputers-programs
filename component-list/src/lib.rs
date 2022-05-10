@@ -31,7 +31,7 @@ use core::panic::PanicInfo;
 use core::pin::Pin;
 use core::time::Duration;
 use oc_wasm_futures::sleep;
-use oc_wasm_opencomputers::common::Point;
+use oc_wasm_opencomputers::common::{Lockable, Point};
 use oc_wasm_opencomputers::{gpu, screen};
 use oc_wasm_safe::{component, computer};
 use once_cell::unsync::OnceCell;
