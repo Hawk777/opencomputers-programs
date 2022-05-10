@@ -2,13 +2,12 @@
 name = "programs-menu"
 version = "0.1.0"
 authors = ["Christopher Head <chead@chead.ca>"]
-edition = "2018"
+edition = "2021"
 description = "Lists all .wasm files and lets the user launch one"
 repository = "https://gitlab.com/Hawk777/opencomputers-programs"
 license = "GPL-3.0-only"
 keywords = ["minecraft", "oc-wasm", "opencomputers"]
 categories = ["games"]
-resolver = "2"
 
 [dependencies.cassette]
 version = "^0.2"
