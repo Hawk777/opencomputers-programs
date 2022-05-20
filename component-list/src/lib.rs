@@ -24,17 +24,13 @@
 // Disabled because this isn’t going to be an actual published crate.
 #![allow(clippy::cargo_common_metadata)]
 
-use cassette::Cassette;
 use core::convert::Infallible;
-use core::future::Future;
 use core::panic::PanicInfo;
-use core::pin::Pin;
 use core::time::Duration;
 use oc_wasm_futures::sleep;
 use oc_wasm_opencomputers::common::{Lockable, Point};
 use oc_wasm_opencomputers::{gpu, screen};
 use oc_wasm_safe::{component, computer};
-use once_cell::unsync::OnceCell;
 use wee_alloc::WeeAlloc;
 
 #[global_allocator]
@@ -93,6 +89,10 @@ async fn main_impl() -> Result<Infallible, oc_wasm_opencomputers::error::Error> 
 }
 
 async fn main() -> Infallible {
+	// Set the panic hook.
+	std::panic::set_hook(Box::new(panic_hook));
+
+	// Run the main function and report errors if it returns one.
 	match main_impl().await {
 		Ok(i) => i,
 		Err(e) => computer::error(&format!("main_impl returned {}", e.as_str())),
@@ -100,35 +100,6 @@ async fn main() -> Infallible {
 }
 
 #[no_mangle]
-pub extern "C" fn run(_: i32) -> i32 {
-	static mut PANIC_HOOK_SET: bool = false;
-	static mut EXECUTOR: OnceCell<Cassette<Pin<Box<dyn Future<Output = Infallible>>>>> =
-		OnceCell::new();
-
-	// SAFETY: run() is not reentrant and never touches the PANIC_HOOK_SET variable anywhere else
-	// in its body, so run() will never create a second mutable reference. PANIC_HOOK_SET is local
-	// to run(), so nobody else can create a second mutable reference on the same thread. OC-Wasm
-	// is single-threaded, so no other threads can call run() at the same time.
-	let panic_hook_set = unsafe { &mut PANIC_HOOK_SET };
-	if !*panic_hook_set {
-		std::panic::set_hook(Box::new(panic_hook));
-		*panic_hook_set = true;
-	}
-
-	// SAFETY: run() is not reentrant and never touches the EXECUTOR variable anywhere else in its
-	// body, so run() will never create a second mutable reference. EXECUTOR is local to run(), so
-	// nobody else can create a second mutable reference on the same thread. OC-Wasm is
-	// single-threaded, so no other threads can call run() at the same time.
-	let executor = unsafe { &mut EXECUTOR };
-	executor.get_or_init(|| Cassette::new(Box::pin(main())));
-	let executor = executor.get_mut().unwrap_or_else(
-		// SAFETY: We just called get_or_init(), so it must be populated.
-		|| panic!("executor is missing"),
-	);
-
-	sleep::check_for_wakeups();
-	if executor.poll_on().is_some() {
-		computer::error("main task terminated");
-	}
-	sleep::shortest_requested()
+pub extern "C" fn run(arg: i32) -> i32 {
+	oc_wasm_cassette::run(arg, main)
 }
