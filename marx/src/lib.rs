@@ -106,6 +106,54 @@ impl From<oc_wasm_opencomputers::error::Error> for Error {
 	}
 }
 
+/// A wrapper around `RefCell` that makes it Sync.
+struct SyncRefCell<T: ?Sized>(RefCell<T>);
+
+impl<T> SyncRefCell<T> {
+	pub fn new(value: T) -> Self {
+		Self(RefCell::new(value))
+	}
+
+	pub fn borrow_mut(&self) -> SyncRefMut<'_, T> {
+		self.try_borrow_mut().expect("already borrowed")
+	}
+
+	pub fn try_borrow_mut(&self) -> Result<SyncRefMut<'_, T>, core::cell::BorrowMutError> {
+		self.0.try_borrow_mut().map(SyncRefMut)
+	}
+}
+
+// SAFETY: OC-Wasm is single-threaded.
+unsafe impl<T: ?Sized> Sync for SyncRefCell<T> {}
+
+impl<T: ?Sized> core::ops::Deref for SyncRefCell<T> {
+	type Target = RefCell<T>;
+
+	fn deref(&self) -> &RefCell<T> {
+		&self.0
+	}
+}
+
+/// A wrapper around `RefMut` that makes it Sync.
+struct SyncRefMut<'a, T: ?Sized>(RefMut<'a, T>);
+
+// SAFETY: OC-Wasm is single-threaded.
+unsafe impl<T: ?Sized> Sync for SyncRefMut<'_, T> {}
+
+impl<T: ?Sized> core::ops::Deref for SyncRefMut<'_, T> {
+	type Target = T;
+
+	fn deref(&self) -> &T {
+		&self.0
+	}
+}
+
+impl<T: ?Sized> core::ops::DerefMut for SyncRefMut<'_, T> {
+	fn deref_mut(&mut self) -> &mut T {
+		&mut *self.0
+	}
+}
+
 /// The colour displayed on the side lights when the robot is in maintenance mode.
 const MAINTENANCE_COLOUR: Rgb = Rgb(0xFF_00_00);
 
@@ -453,13 +501,13 @@ impl RedstonePair {
 /// The full state needed to run the application.
 struct Application {
 	/// The resources, which can be held by one consumer at a time.
-	resources: RefCell<Resources>,
+	resources: SyncRefCell<Resources>,
 
 	/// The system information, which is immutable and can be used by many consumers at once.
 	sys_info: SysInfo,
 
 	/// The database of energy amounts needed by ore type.
-	database: RefCell<Database>,
+	database: SyncRefCell<Database>,
 }
 
 impl Application {
@@ -477,14 +525,14 @@ impl Application {
 			.unwrap_or_else(Database::new);
 
 		Ok(Self {
-			resources: RefCell::new(resources),
+			resources: SyncRefCell::new(resources),
 			sys_info,
-			database: RefCell::new(database),
+			database: SyncRefCell::new(database),
 		})
 	}
 
 	/// Waits until the resources are available and obtains them.
-	async fn resources(&self) -> RefMut<'_, Resources> {
+	async fn resources(&self) -> SyncRefMut<'_, Resources> {
 		retry(|| self.resources.try_borrow_mut()).await
 	}
 
