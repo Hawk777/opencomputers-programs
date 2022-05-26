@@ -34,7 +34,7 @@ use core::pin::Pin;
 use core::time::Duration;
 use minicbor::decode::Decoder;
 use oc_wasm_futures::sleep;
-use oc_wasm_opencomputers::common::{Dimension, Point, Rgb};
+use oc_wasm_opencomputers::common::{Dimension, Lockable, Point, Rgb};
 use oc_wasm_opencomputers::error::Error;
 use oc_wasm_opencomputers::{gpu, keyboard, redstone, robot, screen};
 use oc_wasm_safe::{component, computer};
@@ -177,7 +177,7 @@ struct Navigator {
 impl Navigator {
 	async fn turn(
 		&mut self,
-		bot: &mut robot::Locked<'_, '_>,
+		bot: &mut robot::Locked<'_, '_, Vec<u8>>,
 		rotation: robot::Rotation,
 	) -> Result<(), Error> {
 		bot.turn(rotation).await?;
@@ -187,7 +187,7 @@ impl Navigator {
 
 	async fn turn_to(
 		&mut self,
-		bot: &mut robot::Locked<'_, '_>,
+		bot: &mut robot::Locked<'_, '_, Vec<u8>>,
 		direction: Direction,
 	) -> Result<(), Error> {
 		while let Some(rot) = self.direction.rotation_towards(direction) {
@@ -198,7 +198,7 @@ impl Navigator {
 
 	async fn move_robot(
 		&mut self,
-		bot: &mut robot::Locked<'_, '_>,
+		bot: &mut robot::Locked<'_, '_, Vec<u8>>,
 		direction: robot::MoveDirection,
 	) -> Result<(), Error> {
 		bot.move_robot(direction).await?;
@@ -220,7 +220,7 @@ impl Navigator {
 
 	async fn move_to(
 		&mut self,
-		bot: &mut robot::Locked<'_, '_>,
+		bot: &mut robot::Locked<'_, '_, Vec<u8>>,
 		x: i32,
 		y: i32,
 		z: i32,
@@ -253,7 +253,7 @@ async fn get_key(buffer: &mut Vec<u8>) -> Result<keyboard::BasicKeySignal, Error
 		if let Some(len) = computer::pull_signal_length() {
 			buffer.resize(len.get(), 0);
 			let signal = computer::pull_signal(buffer)?.unwrap();
-			let mut decoder = Decoder::new(&signal);
+			let mut decoder = Decoder::new(signal);
 			let signal_name = decoder
 				.str()
 				.map_err(|_| oc_wasm_safe::error::Error::CborDecode)?;
@@ -437,17 +437,12 @@ impl Application {
 		let mut lister = component::Lister::take().unwrap();
 		let invoker = component::Invoker::take().unwrap();
 		let buffer = vec![];
-		let gpu = gpu::Gpu::new(*lister.start(Some(&gpu::TYPE)).next().unwrap().address());
+		let gpu = gpu::Gpu::new(*lister.start(Some(gpu::TYPE)).next().unwrap().address());
 		let screen =
-			screen::Screen::new(*lister.start(Some(&screen::TYPE)).next().unwrap().address());
-		let robot = robot::Robot::new(*lister.start(Some(&robot::TYPE)).next().unwrap().address());
-		let redstone = redstone::Redstone::new(
-			*lister
-				.start(Some(&redstone::TYPE))
-				.next()
-				.unwrap()
-				.address(),
-		);
+			screen::Screen::new(*lister.start(Some(screen::TYPE)).next().unwrap().address());
+		let robot = robot::Robot::new(*lister.start(Some(robot::TYPE)).next().unwrap().address());
+		let redstone =
+			redstone::Redstone::new(*lister.start(Some(redstone::TYPE)).next().unwrap().address());
 		Ok(Application {
 			invoker,
 			buffer,
@@ -471,16 +466,20 @@ impl Application {
 
 		// Check for a scaffold for comparison.
 		let mut robot_locked = self.robot.lock(&mut self.invoker, &mut self.buffer);
-		if robot_locked.count(SCAFFOLD_SLOT).await? == 0 {
-			panic!("Put a wooden scaffold in the first inventory slot");
-		}
+		assert_ne!(
+			robot_locked.count(SCAFFOLD_SLOT).await?,
+			0,
+			"Put a wooden scaffold in the first inventory slot"
+		);
 
 		// Check that all other slots are empty.
 		let inventory_size = robot_locked.inventory_size().await?;
 		for i in 2..=inventory_size {
-			if robot_locked.count(NonZeroU32::new(i).unwrap()).await? != 0 {
-				panic!("All inventory slots other than the first should be empty");
-			}
+			assert_eq!(
+				robot_locked.count(NonZeroU32::new(i).unwrap()).await?,
+				0,
+				"All inventory slots other than the first should be empty"
+			);
 		}
 
 		// Ask how many layers to fill.
@@ -545,9 +544,7 @@ impl Application {
 				}
 			}
 		};
-		if !properly_positioned {
-			panic!("Please reposition the robot");
-		}
+		assert!(properly_positioned, "Please reposition the robot");
 
 		// Create the navigator.
 		let mut nav = Navigator {
@@ -624,7 +621,7 @@ impl Application {
 					.move_robot(&mut robot_locked, robot::MoveDirection::Down)
 					.await;
 				if let Err(e) = ret {
-					if e == Error::Failed("solid".to_owned()) {
+					if e == Error::Blocked(robot::BlockContent::Solid) {
 						break;
 					}
 					panic!("Unexpected error {:?}", e);

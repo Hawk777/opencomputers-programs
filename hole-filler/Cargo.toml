@@ -2,32 +2,32 @@
 name = "hole-filler"
 version = "0.1.0"
 authors = ["Christopher Head <chead@chead.ca>"]
-edition = "2018"
+edition = "2021"
 description = "Fills in the big hole"
 repository = "https://gitlab.com/Hawk777/opencomputers-programs"
 license = "GPL-3.0-only"
 keywords = ["minecraft", "oc-wasm", "opencomputers"]
 categories = ["games"]
-resolver = "2"
 
 [dependencies.cassette]
 version = "^0.2"
 
 [dependencies.minicbor]
-version = "^0.9"
+version = "^0.15"
 
 [dependencies.oc-wasm-futures]
 default-features = false
-version = "^0.2"
+features = ["alloc"]
+version = "^0.4"
 
 [dependencies.oc-wasm-opencomputers]
 default-features = false
-version = "^0.3"
+version = "^0.5"
 
 [dependencies.oc-wasm-safe]
 default-features = false
 features = ["panic"]
-version = "^0.1"
+version = "^0.2.1"
 
 [dependencies.once_cell]
 default-features = false
