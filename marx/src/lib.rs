@@ -931,7 +931,6 @@ impl Application {
 					// It’s not there. Ask the user about it. Keep the battery charged while doing so.
 					let name = stack.name.to_owned();
 					let label = stack.label.to_owned();
-					drop(stack);
 					drop(resources_locked);
 					let e = {
 						let f1 = self.ask_ore_energy(&label);
