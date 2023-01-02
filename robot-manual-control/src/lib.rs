@@ -57,7 +57,7 @@ struct Application {
 }
 
 impl Application {
-	async fn new() -> Result<Application, oc_wasm_opencomputers::error::Error> {
+	fn new() -> Self {
 		let mut lister = component::Lister::take().unwrap();
 		let invoker = component::Invoker::take().unwrap();
 		let buffer = vec![];
@@ -65,13 +65,13 @@ impl Application {
 		let screen =
 			screen::Screen::new(*lister.start(Some(screen::TYPE)).next().unwrap().address());
 		let robot = robot::Robot::new(*lister.start(Some(robot::TYPE)).next().unwrap().address());
-		Ok(Application {
+		Self {
 			invoker,
 			buffer,
 			gpu,
 			screen,
 			robot,
-		})
+		}
 	}
 
 	async fn run(&mut self) -> Result<Infallible, oc_wasm_opencomputers::error::Error> {
@@ -189,7 +189,7 @@ impl Application {
 }
 
 async fn main_impl() -> Result<Infallible, oc_wasm_opencomputers::error::Error> {
-	Application::new().await?.run().await
+	Application::new().run().await
 }
 
 async fn main() -> Infallible {
