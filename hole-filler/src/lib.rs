@@ -429,7 +429,7 @@ struct Application {
 }
 
 impl Application {
-	async fn new() -> Result<Application, Error> {
+	fn new() -> Self {
 		let mut lister = component::Lister::take().unwrap();
 		let invoker = component::Invoker::take().unwrap();
 		let buffer = vec![];
@@ -439,14 +439,14 @@ impl Application {
 		let robot = robot::Robot::new(*lister.start(Some(robot::TYPE)).next().unwrap().address());
 		let redstone =
 			redstone::Redstone::new(*lister.start(Some(redstone::TYPE)).next().unwrap().address());
-		Ok(Application {
+		Self {
 			invoker,
 			buffer,
 			gpu,
 			screen,
 			robot,
 			redstone,
-		})
+		}
 	}
 
 	async fn run(&mut self) -> Result<Infallible, Error> {
@@ -686,7 +686,7 @@ impl Application {
 }
 
 async fn main_impl() -> Result<Infallible, Error> {
-	Application::new().await?.run().await
+	Application::new().run().await
 }
 
 async fn main() -> Infallible {
