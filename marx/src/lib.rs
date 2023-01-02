@@ -147,7 +147,7 @@ impl<T: ?Sized> core::ops::Deref for SyncRefMut<'_, T> {
 
 impl<T: ?Sized> core::ops::DerefMut for SyncRefMut<'_, T> {
 	fn deref_mut(&mut self) -> &mut T {
-		&mut *self.0
+		&mut self.0
 	}
 }
 
