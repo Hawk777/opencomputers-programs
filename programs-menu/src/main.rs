@@ -1,3 +1,4 @@
+#![no_main]
 #![warn(
 	// Turn on extra language lints.
 	future_incompatible,
