@@ -54,9 +54,9 @@ const HOME_DIR: Direction = Direction::East;
 
 fn panic_hook(info: &PanicInfo<'_>) {
 	if let Some(s) = info.payload().downcast_ref::<&str>() {
-		computer::error(&format!("panic: {}", s));
+		computer::error(&format!("panic: {s}"));
 	} else if let Some(s) = info.payload().downcast_ref::<String>() {
-		computer::error(&format!("panic: {}", s));
+		computer::error(&format!("panic: {s}"));
 	} else {
 		computer::error("panic occurred");
 	}
@@ -329,7 +329,7 @@ async fn read_line(
 							x: cursor_col,
 							y: line,
 						},
-						&format!("{}\u{2588}", ch),
+						&format!("{ch}\u{2588}"),
 						gpu::TextDirection::Horizontal,
 					)
 					.await?;
@@ -622,7 +622,7 @@ impl Application {
 					if e == Error::Blocked(robot::BlockContent::Solid) {
 						break;
 					}
-					panic!("Unexpected error {:?}", e);
+					panic!("Unexpected error {e:?}");
 				}
 			}
 

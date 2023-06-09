@@ -41,9 +41,9 @@ static ALLOC: lol_alloc::AssumeSingleThreaded<lol_alloc::LeakingAllocator> =
 
 fn panic_hook(info: &PanicInfo<'_>) {
 	if let Some(s) = info.payload().downcast_ref::<&str>() {
-		computer::error(&format!("panic: {}", s));
+		computer::error(&format!("panic: {s}"));
 	} else if let Some(s) = info.payload().downcast_ref::<String>() {
-		computer::error(&format!("panic: {}", s));
+		computer::error(&format!("panic: {s}"));
 	} else {
 		computer::error("panic occurred");
 	}

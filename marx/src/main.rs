@@ -59,9 +59,9 @@ static ALLOC: lol_alloc::AssumeSingleThreaded<lol_alloc::LeakingAllocator> =
 /// A panic hook that crashes the computer, displaying the panic message.
 fn panic_hook(info: &PanicInfo<'_>) {
 	if let Some(s) = info.payload().downcast_ref::<&str>() {
-		computer::error(&format!("panic: {}", s));
+		computer::error(&format!("panic: {s}"));
 	} else if let Some(s) = info.payload().downcast_ref::<String>() {
-		computer::error(&format!("panic: {}", s));
+		computer::error(&format!("panic: {s}"));
 	} else {
 		computer::error("panic occurred");
 	}
@@ -270,7 +270,7 @@ impl Resources {
 		Self {
 			lister: component::Lister::take().unwrap(),
 			invoker: component::Invoker::take().unwrap(),
-			buffer: buffer,
+			buffer,
 		}
 	}
 }
@@ -806,7 +806,7 @@ impl Application {
 								x: cursor_col,
 								y: line,
 							},
-							&format!("{}\u{2588}", ch),
+							&format!("{ch}\u{2588}"),
 							gpu::TextDirection::Horizontal,
 						)
 						.await?;
@@ -1234,9 +1234,7 @@ impl Application {
 		let chest_contents = self.scan_chest().await?;
 
 		// Choose the energy level to use on this cycle.
-		let energy_per_ore = if let Some(e) = Self::choose_energy_level(&chest_contents) {
-			e
-		} else {
+		let Some(energy_per_ore) = Self::choose_energy_level(&chest_contents) else {
 			// No items, or not enough to reach minimum energy → don’t run a cycle.
 			return Ok(false);
 		};
