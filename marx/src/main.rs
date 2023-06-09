@@ -51,10 +51,10 @@ use oc_wasm_opencomputers::prelude::*;
 use oc_wasm_opencomputers::robot::{ActionSide, MoveDirection, Rotation};
 use oc_wasm_opencomputers::{filesystem, gpu, inventory, keyboard, redstone, robot, screen};
 use oc_wasm_safe::{component, computer};
-use wee_alloc::WeeAlloc;
 
 #[global_allocator]
-static ALLOC: WeeAlloc<'_> = WeeAlloc::INIT;
+static ALLOC: lol_alloc::AssumeSingleThreaded<lol_alloc::LeakingAllocator> =
+	unsafe { lol_alloc::AssumeSingleThreaded::new(lol_alloc::LeakingAllocator::new()) };
 
 /// A panic hook that crashes the computer, displaying the panic message.
 fn panic_hook(info: &PanicInfo<'_>) {
@@ -265,10 +265,12 @@ struct Resources {
 impl Resources {
 	/// Obtains the one and only copy of the resources.
 	fn take() -> Self {
+		let mut buffer = Vec::new();
+		buffer.reserve(4096);
 		Self {
 			lister: component::Lister::take().unwrap(),
 			invoker: component::Invoker::take().unwrap(),
-			buffer: Vec::new(),
+			buffer: buffer,
 		}
 	}
 }

@@ -9,6 +9,9 @@ license = "GPL-3.0-only"
 keywords = ["minecraft", "oc-wasm", "opencomputers"]
 categories = ["games"]
 
+[dependencies.lol_alloc]
+version = "^0.4"
+
 [dependencies.minicbor]
 version = "^0.19"
 
@@ -27,9 +30,6 @@ version = "^0.10"
 [dependencies.oc-wasm-safe]
 default-features = false
 features = ["panic"]
-version = "^0.4"
-
-[dependencies.wee_alloc]
 version = "^0.4"
 
 [profile.dev]

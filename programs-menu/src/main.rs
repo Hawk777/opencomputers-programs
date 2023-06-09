@@ -33,10 +33,10 @@ use oc_wasm_opencomputers::common::{Dimension, Point, Rgb};
 use oc_wasm_opencomputers::prelude::*;
 use oc_wasm_opencomputers::{filesystem, gpu, keyboard, screen};
 use oc_wasm_safe::{component, computer, execute};
-use wee_alloc::WeeAlloc;
 
 #[global_allocator]
-static ALLOC: WeeAlloc<'_> = WeeAlloc::INIT;
+static ALLOC: lol_alloc::AssumeSingleThreaded<lol_alloc::LeakingAllocator> =
+	unsafe { lol_alloc::AssumeSingleThreaded::new(lol_alloc::LeakingAllocator::new()) };
 
 fn panic_hook(info: &PanicInfo<'_>) {
 	if let Some(s) = info.payload().downcast_ref::<&str>() {
@@ -157,6 +157,7 @@ async fn main_impl() -> Result<Infallible, oc_wasm_opencomputers::error::Error> 
 	let mut lister = component::Lister::take().unwrap();
 	let mut invoker = component::Invoker::take().unwrap();
 	let mut buffer = vec![];
+	buffer.reserve(4096);
 
 	// Initialize GPU and screen.
 	let gpu = gpu::Gpu::new(*lister.start(Some(gpu::TYPE)).next().unwrap().address());
@@ -220,6 +221,7 @@ async fn main_impl() -> Result<Infallible, oc_wasm_opencomputers::error::Error> 
 
 	// Let the user pick a file from that filesystem.
 	let mut files_buffer = vec![];
+	files_buffer.reserve(4096);
 	let files: Vec<&str> = filesystem
 		.lock(&mut invoker, &mut files_buffer)
 		.list("")

@@ -36,10 +36,10 @@ use oc_wasm_opencomputers::common::{Dimension, Lockable, Point, Rgb};
 use oc_wasm_opencomputers::error::Error;
 use oc_wasm_opencomputers::{gpu, keyboard, redstone, robot, screen};
 use oc_wasm_safe::{component, computer};
-use wee_alloc::WeeAlloc;
 
 #[global_allocator]
-static ALLOC: WeeAlloc<'_> = WeeAlloc::INIT;
+static ALLOC: lol_alloc::AssumeSingleThreaded<lol_alloc::LeakingAllocator> =
+	unsafe { lol_alloc::AssumeSingleThreaded::new(lol_alloc::LeakingAllocator::new()) };
 
 const SCAFFOLD_SLOT: NonZeroU32 = unsafe { NonZeroU32::new_unchecked(1) };
 const NORTH_Z: i32 = 372;
@@ -433,7 +433,8 @@ impl Application {
 	fn new() -> Self {
 		let mut lister = component::Lister::take().unwrap();
 		let invoker = component::Invoker::take().unwrap();
-		let buffer = vec![];
+		let mut buffer = vec![];
+		buffer.reserve(4096);
 		let gpu = gpu::Gpu::new(*lister.start(Some(gpu::TYPE)).next().unwrap().address());
 		let screen =
 			screen::Screen::new(*lister.start(Some(screen::TYPE)).next().unwrap().address());
