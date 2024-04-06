@@ -77,17 +77,6 @@ impl Application {
 	}
 
 	async fn run(&mut self) -> Result<Infallible, oc_wasm_opencomputers::error::Error> {
-		// Initialize GPU and screen.
-		let mut gpu_locked = self.gpu.lock(&mut self.invoker, &mut self.buffer);
-		gpu_locked.bind(*self.screen.address(), true).await?;
-		let screen_size = gpu_locked.max_resolution().await?;
-		gpu_locked.set_resolution(screen_size).await?;
-		gpu_locked.set_background(gpu::Colour::Rgb(Rgb(0))).await?;
-		gpu_locked
-			.set_foreground(gpu::Colour::Rgb(Rgb(0xFF_FF_FF)))
-			.await?;
-
-		// Display main menu.
 		const HELP_LINES: [Option<&str>; 10] = [
 			Some("Robot Manual Control Main Menu"),
 			None,
@@ -100,6 +89,18 @@ impl Application {
 			Some("R: Reboot"),
 			Some("P: Power Down"),
 		];
+
+		// Initialize GPU and screen.
+		let mut gpu_locked = self.gpu.lock(&mut self.invoker, &mut self.buffer);
+		gpu_locked.bind(*self.screen.address(), true).await?;
+		let screen_size = gpu_locked.max_resolution().await?;
+		gpu_locked.set_resolution(screen_size).await?;
+		gpu_locked.set_background(gpu::Colour::Rgb(Rgb(0))).await?;
+		gpu_locked
+			.set_foreground(gpu::Colour::Rgb(Rgb(0xFF_FF_FF)))
+			.await?;
+
+		// Display main menu.
 		let mut gpu_locked = self.gpu.lock(&mut self.invoker, &mut self.buffer);
 		gpu_locked
 			.fill(Point { x: 1, y: 1 }, screen_size, ' ')
