@@ -17,24 +17,24 @@ version = "^0.3"
 version = "^0.4"
 
 [dependencies.minicbor]
-version = "^0.19"
+version = "^0.21"
 
 [dependencies.oc-wasm-cassette]
-version = "^0.3"
+version = "^0.12"
 
 [dependencies.oc-wasm-futures]
 default-features = false
 features = ["alloc"]
-version = "^0.6"
+version = "^0.12"
 
 [dependencies.oc-wasm-opencomputers]
 default-features = false
-version = "^0.10"
+version = "^0.12"
 
 [dependencies.oc-wasm-safe]
 default-features = false
 features = ["panic"]
-version = "^0.4"
+version = "^0.12"
 
 [profile.dev]
 panic = "abort"
