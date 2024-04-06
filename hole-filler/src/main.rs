@@ -433,8 +433,7 @@ impl Application {
 	fn new() -> Self {
 		let mut lister = component::Lister::take().unwrap();
 		let invoker = component::Invoker::take().unwrap();
-		let mut buffer = vec![];
-		buffer.reserve(4096);
+		let buffer = Vec::with_capacity(4096);
 		let gpu = gpu::Gpu::new(*lister.start(Some(gpu::TYPE)).next().unwrap().address());
 		let screen =
 			screen::Screen::new(*lister.start(Some(screen::TYPE)).next().unwrap().address());
@@ -600,8 +599,7 @@ impl Application {
 			}
 
 			// Scan inventory slot counts.
-			let mut inventory_counts = vec![];
-			inventory_counts.reserve(inventory_size as usize);
+			let mut inventory_counts = Vec::with_capacity(inventory_size as usize);
 			for i in 0..inventory_size {
 				inventory_counts.push(robot_locked.count(NonZeroU32::new(i + 1).unwrap()).await?);
 			}

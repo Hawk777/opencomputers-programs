@@ -61,8 +61,7 @@ impl Application {
 	fn new() -> Self {
 		let mut lister = component::Lister::take().unwrap();
 		let invoker = component::Invoker::take().unwrap();
-		let mut buffer = vec![];
-		buffer.reserve(4096);
+		let buffer = Vec::with_capacity(4096);
 		let gpu = gpu::Gpu::new(*lister.start(Some(gpu::TYPE)).next().unwrap().address());
 		let screen =
 			screen::Screen::new(*lister.start(Some(screen::TYPE)).next().unwrap().address());

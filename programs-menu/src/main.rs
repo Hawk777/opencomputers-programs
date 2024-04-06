@@ -156,8 +156,7 @@ async fn main_impl() -> Result<Infallible, oc_wasm_opencomputers::error::Error> 
 	// Grab objects.
 	let mut lister = component::Lister::take().unwrap();
 	let mut invoker = component::Invoker::take().unwrap();
-	let mut buffer = vec![];
-	buffer.reserve(4096);
+	let mut buffer = Vec::with_capacity(4096);
 
 	// Initialize GPU and screen.
 	let gpu = gpu::Gpu::new(*lister.start(Some(gpu::TYPE)).next().unwrap().address());
@@ -220,8 +219,7 @@ async fn main_impl() -> Result<Infallible, oc_wasm_opencomputers::error::Error> 
 	drop(filesystems);
 
 	// Let the user pick a file from that filesystem.
-	let mut files_buffer = vec![];
-	files_buffer.reserve(4096);
+	let mut files_buffer = Vec::with_capacity(4096);
 	let files: Vec<&str> = filesystem
 		.lock(&mut invoker, &mut files_buffer)
 		.list("")

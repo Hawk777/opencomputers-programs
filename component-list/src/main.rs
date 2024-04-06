@@ -52,8 +52,7 @@ async fn main_impl() -> Result<Infallible, oc_wasm_opencomputers::error::Error> 
 	// Grab resources.
 	let mut lister = component::Lister::take().unwrap();
 	let mut invoker = component::Invoker::take().unwrap();
-	let mut buffer = vec![];
-	buffer.reserve(4096);
+	let mut buffer = Vec::with_capacity(4096);
 
 	// Find the GPU and screen.
 	let gpu = gpu::Gpu::new(*lister.start(Some(gpu::TYPE)).next().unwrap().address());

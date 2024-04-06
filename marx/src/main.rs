@@ -265,8 +265,7 @@ struct Resources {
 impl Resources {
 	/// Obtains the one and only copy of the resources.
 	fn take() -> Self {
-		let mut buffer = Vec::new();
-		buffer.reserve(4096);
+		let buffer = Vec::with_capacity(4096);
 		Self {
 			lister: component::Lister::take().unwrap(),
 			invoker: component::Invoker::take().unwrap(),
