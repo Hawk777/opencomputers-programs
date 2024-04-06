@@ -684,7 +684,7 @@ impl Application {
 		pin_mut!(key);
 		match select(timeout, key).await {
 			Either::Left(((), _)) => Ok(false),
-			Either::Right((Ok(_), _)) => Ok(true),
+			Either::Right((Ok(()), _)) => Ok(true),
 			Either::Right((Err(e), _)) => Err(e),
 		}
 	}
